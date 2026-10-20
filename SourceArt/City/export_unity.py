@@ -31,7 +31,7 @@ def args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "Export", "Unity"))
-    ap.add_argument("--what", default="kit,env,instances")
+    ap.add_argument("--what", default="kit,env,instances,markers")
     return ap.parse_args(argv)
 
 
@@ -59,14 +59,31 @@ def _fbx(path, objs):
 
 def _ensure_visible():
     def walk(lc):
-        lc.exclude = False
-        lc.hide_viewport = False
+        if lc.exclude:
+            lc.exclude = False
+        if lc.hide_viewport:
+            lc.hide_viewport = False
         for c in lc.children:
             walk(c)
     walk(bpy.context.view_layer.layer_collection)
-    for o in bpy.data.objects:
-        o.hide_set(False)
-        o.hide_viewport = False
+    for o in bpy.data.objects:          # only touch what is actually hidden (100k objects)
+        if o.hide_viewport:
+            o.hide_viewport = False
+        if o.hide_get():
+            o.hide_set(False)
+
+
+def _coll_map():
+    """object name -> first owning collection name, built once (users_collection is O(N) per call)."""
+    m = {}
+    for c in bpy.data.collections:
+        for o in c.objects:
+            m.setdefault(o.name, c.name)
+    return m
+
+
+def _kit_meshes():
+    return {o.data.name: o.name for o in bpy.data.objects if o.name.startswith("KIT_") and o.type == "MESH"}
 
 
 def export_kit(out):
@@ -91,7 +108,9 @@ ENV_COLLECTIONS = ["01_Terrain", "Roads_Surface", "Roads_Intersections", "Roads_
                    "Roads_Bridges"]
 
 
-def export_env(out):
+def export_env(out, covered):
+    """Static environment + every custom (non-kit) mesh: landmarks per site, custom props (wires...)."""
+    kit = _kit_meshes()
     n = 0
     for cname in ENV_COLLECTIONS:
         c = bpy.data.collections.get(cname)
@@ -100,14 +119,18 @@ def export_env(out):
         objs = [o for o in c.all_objects if o.type == "MESH"]
         if objs:
             _fbx(os.path.join(out, "Env", cname + ".fbx"), objs)
+            covered.update(o.name for o in objs)
             n += 1
-    # landmark custom meshes (non-kit) per site
-    lm = bpy.data.collections.get("05_Landmarks")
-    if lm is not None:
-        for site in lm.children:
-            objs = [o for o in site.all_objects if o.type == "MESH" and o.data.name.startswith("LM_")]
+    for top, sub in (("05_Landmarks", "Landmarks"), ("06_Props", "Props")):
+        root = bpy.data.collections.get(top)
+        if root is None:
+            continue
+        for site in root.children:
+            objs = [o for o in site.all_objects
+                    if o.type == "MESH" and o.data.name not in kit and o.name not in covered]
             if objs:
-                _fbx(os.path.join(out, "Env", "Landmarks", site.name + ".fbx"), objs)
+                _fbx(os.path.join(out, "Env", sub, site.name.replace(".", "_") + ".fbx"), objs)
+                covered.update(o.name for o in objs)
                 n += 1
     return n
 
@@ -122,8 +145,17 @@ def _blender_transform(o):
                 scale=[round(sc.x, 4), round(sc.y, 4), round(sc.z, 4)])
 
 
-def export_instances(out):
-    kit_meshes = {o.data.name: o.name for o in bpy.data.objects if o.name.startswith("KIT_") and o.type == "MESH"}
+def _props(o):
+    out = {}
+    for k in o.keys():
+        v = o[k]
+        if isinstance(v, (int, float, str, bool)):
+            out[k] = v
+    return out
+
+
+def export_instances(out, covered, cmap):
+    kit_meshes = _kit_meshes()
     rows = []
     for o in bpy.data.objects:
         if o.type != "MESH" or o.name.startswith("KIT_"):
@@ -138,9 +170,9 @@ def export_instances(out):
         top = o
         while top.parent is not None:
             top = top.parent
-        coll = o.users_collection[0].name if o.users_collection else ""
-        rows.append(dict(name=o.name, prefab=src, collection=coll,
+        rows.append(dict(name=o.name, prefab=src, collection=cmap.get(o.name, ""),
                          building=top.name if top is not o else None, materials=overrides, **_blender_transform(o)))
+        covered.add(o.name)
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, "instances.json"), "w") as f:
         json.dump(dict(coordinate_note="RAW Blender space (Z-up, meters); convert like the FBX import (see export_unity.py)",
@@ -148,17 +180,61 @@ def export_instances(out):
     return len(rows)
 
 
+def export_markers(out, cmap):
+    """Gameplay empties (GP_*, *_Anchor_*) and building / lot roots with all their custom properties."""
+    markers, roots = [], []
+    for o in bpy.data.objects:
+        if o.type != "EMPTY":
+            continue
+        row = dict(name=o.name, collection=cmap.get(o.name, ""), props=_props(o), **_blender_transform(o))
+        if o.name.startswith("GP_") or "_Anchor_" in o.name:
+            if "gp_type" not in row["props"] and "gameplay" in row["props"]:
+                row["props"]["gp_type"] = row["props"]["gameplay"]
+            markers.append(row)
+        elif o.name.startswith(("BLD_", "LOT_")):
+            roots.append(row)
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, "markers.json"), "w") as f:
+        json.dump(dict(note="local -Y is each marker's facing; RAW Blender space", count=len(markers), markers=markers), f, indent=0)
+    with open(os.path.join(out, "roots.json"), "w") as f:
+        json.dump(dict(count=len(roots), roots=roots), f)
+    return dict(markers=len(markers), roots=len(roots))
+
+
+def coverage(covered):
+    """Every visible mesh outside the kit shelf should be exported by exactly one path."""
+    shelf = set()
+    kc = bpy.data.collections.get("KIT_Library")
+    if kc is not None:
+        shelf = {o.name for o in kc.all_objects}
+    hidden_colls = {"03_Zoning_Blockout", "99_Annotations", "08_Preview_Cameras"}
+    skip = set()
+    for cn in hidden_colls:
+        c = bpy.data.collections.get(cn)
+        if c is not None:
+            skip.update(o.name for o in c.all_objects)
+    missing = [o.name for o in bpy.data.objects
+               if o.type == "MESH" and o.name not in covered and o.name not in shelf and o.name not in skip]
+    return dict(missing=len(missing), examples=missing[:12])
+
+
 def main():
     a = args()
     _ensure_visible()
     what = a.what.split(",")
     rep = {}
+    covered = set()
+    cmap = _coll_map()
     if "kit" in what:
         rep["kit_fbx"] = export_kit(a.out)
     if "env" in what:
-        rep["env_fbx"] = export_env(a.out)
+        rep["env_fbx"] = export_env(a.out, covered)
     if "instances" in what:
-        rep["instances"] = export_instances(a.out)
+        rep["instances"] = export_instances(a.out, covered, cmap)
+    if "markers" in what:
+        rep.update(export_markers(a.out, cmap))
+    if "env" in what and "instances" in what:
+        rep["coverage"] = coverage(covered)
     rep["out"] = a.out
     print("EXPORT_REPORT", json.dumps(rep))
 

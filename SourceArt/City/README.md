@@ -19,9 +19,16 @@ Export to Unity happens through `export_unity.py` (FBX + JSON).
 # preview one kit family
 ./run.sh --layout layout_empty --phases kit --kit-families walls --renders kitsheet --tag walls
 
-# Unity export (kit FBX per piece, environment FBX, instances.json)
+# Unity export (kit FBX per piece, environment + custom-mesh FBX, instances / markers / roots JSON)
 "<blender.exe>" -b City_Foundation.blend --factory-startup --python export_unity.py -- --out Export/Unity
 ```
+Export outputs: `Kit/<family>/KIT_*.fbx` (one prefab source per kit piece), `Env/*.fbx` (terrain,
+roads, sidewalks, markings, bridges), `Env/Landmarks/*.fbx` + `Env/Props/*.fbx` (every custom
+non-kit mesh: hero landmark pieces, power-line wires...), `instances.json` (every kit instance:
+prefab, transform incl. quaternion, per-slot material overrides, owning building),
+`markers.json` (GP_ gameplay empties + landmark `*_Anchor_*` empties with their custom props),
+`roots.json` (BLD_/LOT_ roots: archetype, floors, size, district). The report's `coverage` lists any
+visible mesh not exported by exactly one path (should be 0). Transforms are raw Blender space.
 `run.sh` calls Blender 5.2 headless (Steam install path inside the script) and prints a JSON
 report: validation errors/warnings, building/prop counts, kit manifest, timings.
 
@@ -48,6 +55,18 @@ report: validation errors/warnings, building/prop counts, kit manifest, timings.
   Recolorable placeholder slots are swapped per instance (object-level material links).
 - Buildings and props are **linked duplicates** of kit meshes: edit a kit piece once and every
   building updates. Custom properties (archetype, floors, habitat, ...) export to Unity via FBX.
+
+## Density ("busy city" pass, 2026-10-20)
+The owner's feedback on the first pass ("big village, houses far apart") and references live in
+`docs/reference/`. Density is controlled in code, not by hand:
+- `citygen/placement.py` `RULES` — per-district archetype mix, setbacks, side gaps, floors, `pave`
+  (concrete lot pads instead of grass strips), `yard` (only `suburb` keeps real yards).
+- `placement.INFILL` — second-row buildings / garages / warehouses / **parking lots** inside blocks.
+- `placement.LOT_BACK` — how deep the paved back lots go per district.
+- `dressing.py` — kerb parking (`PARK_PROB`), lane traffic, utility poles + wires (`POLE_KINDS`),
+  gap trees, woodland on unzoned land, bus stops.
+Civic anchors (police, fire, school, church, vet clinic, gas station, supermarket, diner) are
+LANDMARKS sites at the end of `layouts/layout_main.py`, built by `landmarks/civic_*.py`.
 
 ## Docs
 - `docs/DESIGN_BRIEF.md` — creative brief for the city.

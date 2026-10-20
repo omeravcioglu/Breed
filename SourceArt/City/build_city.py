@@ -52,8 +52,15 @@ def main():
     layout = importlib.import_module(f"layouts.{args.layout}")
     scene.clear_scene()
     scene.ensure_hierarchy()
-    ctx = dict(layout=layout)
+    ctx = dict(layout=layout, out=args.out)
     report = {}
+    timings = {}
+    report["timings"] = timings
+
+    def lap(name, t_prev=[t0]):
+        now = time.time()
+        timings[name] = round(now - t_prev[0], 1)
+        t_prev[0] = now
 
     river = terrain.River(layout.RIVER) if getattr(layout, "RIVER", None) else None
     ctx["river"] = river
@@ -62,6 +69,7 @@ def main():
         net = roads.build(layout)
         roads.build_bridges(net, river.poly if river else None, river.hw if river else 0.0)
     ctx["net"] = net
+    lap("roads")
     if "terrain" in phases:
         terrain.build_ground(layout, river)
         terrain.build_canal(river, net.clearance_hash(extra=0.0))
@@ -70,6 +78,7 @@ def main():
         terrain.build_district_grounds(layout)
         terrain.build_zoning(layout)
         terrain.build_labels(layout, net)
+    lap("terrain")
 
     if "kit" in phases:
         from citygen import kit
@@ -77,22 +86,27 @@ def main():
         ctx["kit"] = kit.build_kit(fams)
         if kit.ERRORS:
             report["kit_errors"] = kit.ERRORS
+    lap("kit")
     if "buildings" in phases:
         from citygen import placement
         report["buildings"] = placement.populate(ctx)
+    lap("buildings")
     if "landmarks" in phases:
         from citygen import landmarks
         only = set(m for m in args.landmark_modules.split(",") if m) or None
         report["landmarks"] = landmarks.build_all(ctx, only=only)
+    lap("landmarks")
     if "props" in phases:
         from citygen import dressing
         report["props"] = dressing.populate(ctx)
+    lap("props")
     if "markers" in phases:
         from citygen import markers
         report["markers"] = markers.build(ctx)
     if "finalize" in phases:
         from citygen import finalize
         report["finalize"] = finalize.run(ctx)
+    lap("markers+finalize")
 
     v = validate.validate(layout, net, river)
     report["validation"] = v

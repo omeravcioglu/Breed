@@ -334,6 +334,8 @@ def assemble(spec, name, loc, rot_z, path, base_z=C.LOT_Z):
                 A.put("Awning_Window", x, y, zs[f] + 2.75, r)
     if spec.feats.get("fire_escape") and spec.floors >= 3:
         fside = spec.feats.get("fire_escape_side", "back")
+        if fside in ("left", "right") and not spec.exposed.get(fside):
+            fside = next((sd for sd in ("left", "right") if spec.exposed.get(sd)), "back")
         cand = [s for s in slots if s[0] == fside]
         if cand:
             side, i, n, x, y, r = cand[min(1, len(cand) - 1)]
@@ -373,20 +375,20 @@ def assemble(spec, name, loc, rot_z, path, base_z=C.LOT_Z):
     # roof
     if spec.roof == "flat":
         has_parapet = a not in ("shed",)
-        cornice = a in ("mixed", "apartment", "shop", "commercial", "cafe") and spec.floors >= 1
+        cornice = a in ("mixed", "apartment", "shop", "commercial", "cafe", "townhouse") and spec.floors >= 1
         if cornice and K.has("KIT_Cornice_3m"):
             for side, i, n, x, y, r in slots:
                 A.put("Cornice_3m", x, y, top - 0.4, r)
             for _, cx, cy, cr in corner_slots(spec):
                 A.put("Cornice_Corner", cx, cy, top - 0.4, cr)
         if has_parapet:
-            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W - 0.5, D - 0.5, 1.0), recolor=False)
+            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W - 0.5, D - 0.5, 1.0))
             for side, i, n, x, y, r in slots:
                 A.put("Parapet_3m", x, y, top, r)
             for _, cx, cy, cr in corner_slots(spec):
                 A.put("Parapet_Corner", cx, cy, top, cr)
         else:
-            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0), recolor=False)
+            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0))
         # rooftop clutter
         roof_z = top + 0.2
         spots = []
@@ -433,7 +435,7 @@ def _gable(A, spec, top, rng):
     if spec.roof in ("gable_side", "gable_low"):
         span = int(round(D))
         if not K.has(f"KIT_Roof_Gable_S{span}_Mid"):
-            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0), recolor=False)
+            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0))
             return
         for i in range(spec.nw):
             A.put(f"Roof_Gable_S{span}_Mid", -W / 2 + 1.5 + MW * i, 0.0, top, 0.0)
@@ -445,7 +447,7 @@ def _gable(A, spec, top, rng):
     else:  # gable_front: ridge along Y, gables face front/back
         span = int(round(W))
         if not K.has(f"KIT_Roof_Gable_S{span}_Mid"):
-            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0), recolor=False)
+            A.put("Roof_Flat_1x1", 0.0, D / 2, top, 0.0, scale=(W + 0.3, D + 0.3, 1.0))
             return
         for j in range(spec.nd):
             A.put(f"Roof_Gable_S{span}_Mid", -W / 2, 1.5 + MW * j, top, -R90)

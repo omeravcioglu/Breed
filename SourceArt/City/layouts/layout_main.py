@@ -334,7 +334,7 @@ _D = [
       (240, 270), (240, 290), (217, 232), (182, 150), (171, 110)]),
     ("LookoutPark", "Lookout Park", "park", None, (318, 190),
      [(345, 155), (345, 345), (240, 345), (240, 290), (240, 270), (248, 210), (262, 192), (300, 160)]),
-    ("CanalWorks", "Canal Works", "service", None, (215, -5),
+    ("CanalWorks", "Canal Works", "service", "gravel", (215, -5),
      [(160, 58), (232, 24), (296, -4), (290, -40), (273, -76), (300, -100), (328, -95), (336, -65), (334, -25),
       (345, -27), (345, -157), _QN[11], _QN[10], _QN[9], _QN[8], (150, 30)]),
     ("DockYard", "Dock Yard", "service", "gravel", (316, -50),
@@ -353,13 +353,13 @@ _D = [
       (-30, -27)]),
     ("BridgeCorner", "Bridge Corner", "market", None, None,
      [(4, -12), (4, 15), _QS[6], _QS[7], (130, -12), (112, -60), (85, -38), (45, -22)]),
-    ("Wharf", "The Wharf", "service", None, None,
+    ("Wharf", "The Wharf", "service", "gravel", None,
      [(112, -60), (130, -12), _QS[9], _QS[10], _QS[11], (345, -194), (345, -210), (340, -208), (295, -178),
       (262, -150), (227, -120), (170, -145), (112, -162), (110, -118)]),
     ("Pinecrest", "Pinecrest", "residential", None, None,
      [(-123, -47), (-160, -80), (-188, -120), (-205, -168), (-168, -180), (-128, -190), (-48, -197), (24, -180),
       (13, -115), (11, -101), (-10, -101), (-55, -101), (-88, -100), (-121, -98)]),
-    ("Meadowbrook", "Meadowbrook", "suburb", None, None,
+    ("Meadowbrook", "Meadowbrook", "residential", None, None,
      [(-205, -168), (-168, -180), (-128, -190), (-48, -197), (24, -180), (45, -240), (47, -285), (30, -345),
       (-205, -345), (-200, -200)]),
     ("Larkspur", "Larkspur", "residential", None, None,
@@ -548,4 +548,48 @@ CROSSWALKS = [
     dict(road="MapleSt", at=(-50.5, -30.0)),   # pet shop door / spawn -> Green Walk
     dict(road="MainSt", at=(8.0, -66.0)),      # Maple Corner -> Fairground Lot arch
     dict(road="CanalSt", at=(-45.0, 101.0)),   # downtown -> Town Square
+]
+
+
+# =============================================================================== CIVIC ANCHORS
+# Lead densification pass (2026-10-20): civic / commercial anchors that make the town read as a
+# busy city. Sites were fitted along their roads by _tmp/site_finder.py (clear of roads, canal,
+# paths and other sites). Built by citygen/landmarks/civic_services.py and civic_commerce.py.
+LANDMARKS.update({
+    "GasStation": dict(name="Gas Station", module="civic_commerce", road="MainSt", center=(58.0, -203.3), facing=(-0.931, -0.365),
+                  poly=[(38.8, -192.6), (51.2, -224.2), (77.3, -214.0), (64.9, -182.3)]),
+    "PoliceStation": dict(name="Police Station", module="civic_services", road="CanalSt", center=(65.2, 114.7), facing=(-0.185, -0.983),
+                  poly=[(48.2, 105.7), (77.7, 100.1), (82.2, 123.7), (52.7, 129.3)]),
+    "FireStation": dict(name="Fire Station", module="civic_services", road="MainSt", center=(43.3, 229.4), facing=(-0.95, 0.314),
+                  poly=[(34.7, 244.9), (27.2, 222.1), (51.9, 213.9), (59.4, 236.7)]),
+    "Supermarket": dict(name="Supermarket", module="civic_commerce", road="SouthsidePkwy", center=(-2.9, -216.8), facing=(-0.256, 0.967),
+                  poly=[(16.9, -189.8), (-33.4, -203.1), (-22.7, -243.7), (27.6, -230.4)]),
+    "School": dict(name="Willowbrook School", module="civic_services", road="OrchardLn|HillcrestDr|BellSt|UnionSt|FerrySt|LarchSt", center=(178.1, 207.9), facing=(0.914, -0.405),
+                  poly=[(186.2, 176.9), (206.5, 222.6), (169.9, 238.8), (149.6, 193.1)]),
+    "VetClinic": dict(name="Vet Clinic", module="civic_services", road="MapleSt", center=(-94.1, -53.4), facing=(-0.244, 0.97),
+                  poly=[(-85.9, -41.0), (-107.2, -46.4), (-102.3, -65.8), (-81.0, -60.4)]),
+    "Diner": dict(name="Diner", module="civic_commerce", road="MainSt", center=(35.0, -135.4), facing=(-0.99, -0.143),
+                  poly=[(24.5, -125.8), (27.6, -147.5), (45.5, -145.0), (42.3, -123.2)]),
+    "Church": dict(name="Church", module="civic_services", road="ElmSt", center=(-20.9, 255.9), facing=(-0.999, -0.055),
+                  poly=[(-37.5, 266.0), (-36.3, 244.0), (-4.3, 245.8), (-5.5, 267.8)]),
+})
+
+
+# civic anchors as habitats / hiding places (lead densification pass, 2026-10-20)
+ANIMAL_ZONES += [
+    dict(id="SchoolYard", center=(180.0, 214.0), radius=30, habitat="school playground / fenced sports court",
+         animals=["kangaroos", "ostriches"], notes="open sand + court for round-ups; school bus as cover"),
+    dict(id="SupermarketLot", center=(-2.9, -216.8), radius=32, habitat="supermarket parking lot / loading dock",
+         animals=["raccoons", "monkeys"], notes="cart corrals, dock bins, parked cars"),
+    dict(id="Churchyard", center=(-20.9, 255.9), radius=22, habitat="churchyard / headstones / steeple",
+         animals=["owls", "bats", "peacocks"], notes="quiet corner next to Elm Heights"),
+    dict(id="GasCanopy", center=(58.0, -203.3), radius=22, habitat="gas station canopy / pumps / mart",
+         animals=["parrots", "lemurs"], notes="canopy roof is a perch; snacks in the mart"),
+]
+HIDING_SPOTS += [
+    dict(id="SupermarketDock", at=(-2.9, -226.0), notes="behind the supermarket loading dock"),
+    dict(id="ChurchyardHeadstones", at=(-14.0, 258.0), notes="between the churchyard headstones"),
+    dict(id="SchoolPlayTower", at=(186.0, 216.0), notes="under the school play tower"),
+    dict(id="DinerBins", at=(35.0, -142.0), notes="diner back bins"),
+    dict(id="FireBay", at=(43.3, 233.0), notes="behind the fire engine in the open bay"),
 ]

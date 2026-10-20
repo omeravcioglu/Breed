@@ -104,6 +104,10 @@ def run(ctx, export_dir=None):
         root["generator_version"] = GENERATOR_VERSION
         root["layout"] = ctx["layout"].__name__
     out = dict(loose_objects_adopted=loose, issues=issues)
+    if not ctx.get("out"):
+        # manifests describe a SAVED build only (scratch / review builds must not overwrite them)
+        out["export_dir"] = None
+        return out
     export_dir = export_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Export")
     os.makedirs(export_dir, exist_ok=True)
     net = ctx["net"]
@@ -111,7 +115,8 @@ def run(ctx, export_dir=None):
         json.dump(_road_graph(net), f, indent=1)
     layout = ctx["layout"]
     manifest = dict(
-        generator_version=GENERATOR_VERSION, layout=layout.__name__,
+        generator_version=GENERATOR_VERSION, layout=layout.__name__, blend=str(ctx.get("out")),
+        built_utc=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds"),
         footprint=dict(city_half=C.CITY_HALF, ground_half=C.GROUND_HALF),
         districts=[dict(id=d["id"], name=d.get("name", d["id"]), kind=d["kind"]) for d in layout.DISTRICTS],
         landmarks={k: dict(name=v.get("name", k), center=v.get("center")) for k, v in getattr(layout, "LANDMARKS", {}).items()},

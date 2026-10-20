@@ -36,6 +36,7 @@ RECOLOR_SLOTS = {
     "M_Roof_Slate": "roof",
     "M_Sign_Accent": "sign",
     "M_Foliage": "foliage",
+    "M_Roof_Flat": "flatroof",
 }
 
 REG = {}          # name -> dict(obj, family, category, dims, meta)

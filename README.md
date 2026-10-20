@@ -68,6 +68,6 @@ All of it: 45 Python files, about 22k lines.
 
 ## About this repository
 
-This public repository is a **showcase**. It contains the documentation and the **46 source files I wrote** for this project. The complete project, with the generated Blender scene and the Unity export, is kept in a private repository.
+This public repository is a **showcase**. It contains the documentation and the **48 source files I wrote** for this project. The complete project, with the generated Blender scene and the Unity export, is kept in a private repository.
 
 Copyright © Omer Avcioglu (McHunter Studio). **All rights reserved.** Viewing only; see [LICENSE](LICENSE).

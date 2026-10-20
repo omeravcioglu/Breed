@@ -17,7 +17,7 @@ PALETTE = {
     "M_RoadLine_Yellow":("#f0bf4c", 0.80, 0.0),
     "M_Sidewalk":       ("#cdc6b8", 0.90, 0.0),
     "M_Curb":           ("#aaa49a", 0.90, 0.0),
-    "M_Grass":          ("#8dbb5e", 0.95, 0.0),
+    "M_Grass":          ("#86ad5a", 0.95, 0.0),
     "M_Grass_Park":     ("#7aae52", 0.95, 0.0),
     "M_Grass_Dry":      ("#b3b866", 0.95, 0.0),
     "M_Dirt":           ("#b58e62", 0.95, 0.0),
@@ -39,6 +39,9 @@ PALETTE = {
     "M_Wall_Peach":     ("#f1b48f", 0.85, 0.0),
     "M_Wall_Coral":     ("#e7876e", 0.85, 0.0),
     "M_Wall_Brick":     ("#b4553f", 0.88, 0.0),
+    "M_Wall_BrickDark": ("#8c4a3c", 0.88, 0.0),
+    "M_Wall_Tan":       ("#cdb48e", 0.88, 0.0),
+    "M_Wall_Stone":     ("#b5ab9b", 0.90, 0.0),
     "M_Wall_Sage":      ("#a9c49f", 0.85, 0.0),
     "M_Wall_Mint":      ("#9fd4c6", 0.85, 0.0),
     "M_Wall_Sky":       ("#9dc3e0", 0.85, 0.0),
@@ -58,6 +61,8 @@ PALETTE = {
     "M_Roof_Green":     ("#4f7a5a", 0.85, 0.0),
     "M_Roof_Charcoal":  ("#3c4048", 0.85, 0.0),
     "M_Roof_Flat":      ("#9b968d", 0.95, 0.0),
+    "M_Roof_FlatTar":   ("#5e6168", 0.95, 0.0),
+    "M_Roof_FlatGravel":("#a8a093", 0.95, 0.0),
     "M_Glass":          ("#5d8fb2", 0.08, 0.1),
     "M_Glass_Shop":     ("#3f93bd", 0.06, 0.15),   # deeper than M_Wall_Sky so storefronts read at range
     "M_Door_Wood":      ("#9c6541", 0.80, 0.0),
@@ -120,8 +125,13 @@ PALETTE = {
 
 WALL_COLORS_WARM = ["M_Wall_Cream", "M_Wall_Butter", "M_Wall_Peach", "M_Wall_Coral", "M_Wall_Rose", "M_Wall_White"]
 WALL_COLORS_COOL = ["M_Wall_Sage", "M_Wall_Mint", "M_Wall_Sky", "M_Wall_Lavender", "M_Wall_White"]
-WALL_COLORS_DOWNTOWN = ["M_Wall_Brick", "M_Wall_Cream", "M_Wall_Butter", "M_Wall_Coral", "M_Wall_Sage",
-                        "M_Wall_Sky", "M_Wall_Peach", "M_Wall_White", "M_Wall_Lavender"]
+WALL_COLORS_DOWNTOWN = ["M_Wall_Brick"] * 3 + ["M_Wall_BrickDark"] * 3 + ["M_Wall_Tan"] * 2 + \
+    ["M_Wall_Stone"] * 2 + ["M_Wall_Cream", "M_Wall_Butter", "M_Wall_Sage", "M_Wall_Slate", "M_Wall_Coral"]
+# muted city residential: mostly brick / tan / stone / cream with a few pastel accents
+WALL_COLORS_RESIDENTIAL = ["M_Wall_Brick"] * 2 + ["M_Wall_BrickDark", "M_Wall_Tan", "M_Wall_Tan", "M_Wall_Stone",
+                           "M_Wall_Cream", "M_Wall_Cream", "M_Wall_White", "M_Wall_Sage", "M_Wall_Butter",
+                           "M_Wall_Sky", "M_Wall_Peach"]
+FLAT_ROOF_COLORS = ["M_Roof_Flat", "M_Roof_FlatTar", "M_Roof_FlatGravel", "M_Roof_FlatTar"]
 WALL_COLORS_INDUSTRIAL = ["M_Wall_Slate", "M_Wall_Concrete", "M_Wall_Corrugated", "M_Wall_Brick"]
 ROOF_COLORS = ["M_Roof_Slate", "M_Roof_Terracotta", "M_Roof_Green", "M_Roof_Charcoal"]
 AWNING_COLORS = ["M_Awning_Red", "M_Awning_Green", "M_Awning_Blue", "M_Awning_Yellow", "M_Awning_Teal"]

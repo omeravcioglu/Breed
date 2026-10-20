@@ -18,6 +18,10 @@ SITE_MODULES = {
     "CentralPark": "park", "Lookout": "lookout",
     "TownSquare": "town_square", "Marina": "marina",
     "ServiceYard": "service_yard",
+    # civic anchors (densification pass)
+    "PoliceStation": "civic_services", "FireStation": "civic_services", "School": "civic_services",
+    "Church": "civic_services", "VetClinic": "civic_services",
+    "GasStation": "civic_commerce", "Supermarket": "civic_commerce", "Diner": "civic_commerce",
 }
 AREA_MODULES = {
     "ZooLanding": "zoo", "ZooForecourt": "zoo", "ZooParking": "zoo", "ZooBackLot": "zoo",
