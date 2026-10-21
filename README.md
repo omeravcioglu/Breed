@@ -4,17 +4,23 @@
 
 | | |
 |---|---|
-| ![The whole town from the north-east](SourceArt/City/renders/overview_NE_v1.png) | ![The pet shop, home base](SourceArt/City/renders/cam_petshop_front_v1.png) |
-| ![The zoo breach where the animals escape](SourceArt/City/renders/cam_zoo_breach_v1.png) | ![Downtown](SourceArt/City/renders/view_downtown_v1.png) |
+| ![Willowbrook from the north-east](SourceArt/City/renders/overview_NE_final.png) | ![The pet shop, home base](SourceArt/City/renders/cam_petshop_front_final.png) |
+| ![The zoo breach where the animals escape](SourceArt/City/renders/cam_zoo_breach_final.png) | ![Downtown](SourceArt/City/renders/view_downtown_final.png) |
 
-*Renders of the city foundation, straight from the Blender pipeline.*
+*Willowbrook, the game's canal town, rendered straight from the Blender pipeline.*
 
 ---
 
 ## Status
 
 The project started in October 2026.
-- **The city foundation exists:** a procedural pipeline builds the whole town in Blender from a hand-designed layout and exports it to Unity.
+- **The city foundation exists:** a procedural pipeline builds the whole town of **Willowbrook** in Blender from a hand-designed layout and exports it to Unity. The town has:
+  - about 8.8 km of streets and 58 intersections;
+  - 5 bridges over a 22 m canal;
+  - 19 districts, and buildings assembled from a ~125-piece kit.
+- **A densification pass followed the first review.** The first town read as a spread-out village, so the buildings now pack in like a busy town, and 8 civic anchors joined the landmarks:
+  - a gas station, a supermarket and a diner;
+  - a police station with animal control, a fire station, a school, a church and a vet clinic.
 - **The Unity side** is still a fresh Unity 6 project; gameplay comes next.
 
 ## The city pipeline (`SourceArt/City`)
@@ -27,12 +33,13 @@ The project started in October 2026.
   5. **Landmarks:**
      - the pet shop (home base) and the zoo (where the incident starts);
      - Central Park, the town square, the service yard and the marina;
+     - the civic anchors: shops, emergency services, a school, a church and a vet;
      - a lookout, hiding spots and more.
   6. **Street dressing:** street lights, trees, furniture, alley clutter, parked cars, traffic lights and an edge forest.
   7. **Gameplay markers:** player spawns, animal zones, hiding spots, the shop's expansion plot, the zoo incident and map exits.
 - **Checked on every build.** A validator reports overlapping buildings, crossing roads and curves that are too tight. Each build writes review renders and a JSON report with the counts and timings.
 - **Edit once, update everywhere.** Buildings and props are linked duplicates of kit meshes, so editing one kit piece updates every building. Custom properties (archetype, floors, habitat…) travel to Unity through FBX.
-- **Ready for Unity.** `export_unity.py` writes one FBX per kit piece, the environment, and JSON for the instances, the city manifest and the road graph.
+- **Ready for Unity.** `export_unity.py` writes one FBX per kit piece and the environment into `Export/Unity`, plus JSON for the instances, gameplay markers and root objects, the city manifest and the road graph.
 
 ## Tech stack
 
@@ -54,7 +61,7 @@ All of it: 45 Python files, about 22k lines.
 | Terrain, roads, intersections and bridges | `citygen/terrain.py`, `roads.py`, `geom2d.py`, `meshutil.py` |
 | The modular kit | `citygen/kit/` (`walls`, `roofs`, `details`, `props`, `nature`), `facade.py` |
 | Building placement and assembly | `citygen/placement.py`, `assembler.py` |
-| Landmarks | `citygen/landmarks/` (pet shop, zoo, park, town square, service yard, marina, lookout, courts, hiding spots…), `lmkit.py` |
+| Landmarks | `citygen/landmarks/` (pet shop, zoo, park, town square, service yard, marina, lookout, courts, hiding spots, and the civic anchors in `civic_commerce` and `civic_services`), `lmkit.py` |
 | Street dressing and gameplay markers | `citygen/dressing.py`, `markers.py` |
 | Validation and review renders | `citygen/validate.py`, `render.py` |
 | Unity export | `export_unity.py` |
@@ -64,6 +71,8 @@ All of it: 45 Python files, about 22k lines.
 
 - [`SourceArt/City/README.md`](SourceArt/City/README.md): the pipeline, its phases, conventions and editing workflow
 - [`SourceArt/City/docs/DESIGN_BRIEF.md`](SourceArt/City/docs/DESIGN_BRIEF.md): the game and the city's creative brief
+- [`SourceArt/City/docs/DEV_SUMMARY.md`](SourceArt/City/docs/DEV_SUMMARY.md): what was built in each phase, and how the layout was chosen from three candidates by a panel of three judges
+- `SourceArt/City/docs/reference/`: the visual references behind the densification pass
 - [`SourceArt/City/docs/LAYOUT_SPEC.md`](SourceArt/City/docs/LAYOUT_SPEC.md), [`KIT_SPEC.md`](SourceArt/City/docs/KIT_SPEC.md), [`LANDMARK_SPEC.md`](SourceArt/City/docs/LANDMARK_SPEC.md): the layout schema, the kit and the landmark builders
 
 ## About this repository
